@@ -14,7 +14,7 @@ from bentley_ottmann.planar import edges_intersect # Implementacion del algoritm
 from calcular_NCH_simple import *
 from aux_functions import *
 # #############################################################################
-def calcular_NCH_simple (X, l, extend, contraer_SCH):
+def calcular_NCH_simple_con_graficas (X, l, extend, contraer_SCH):
     # Delaunay tesselation of X
     tri = Delaunay(X)
     triangles = tri.simplices.copy()
@@ -50,20 +50,20 @@ def calcular_NCH_simple (X, l, extend, contraer_SCH):
     #boundary_v = np.unique(CH_e) # ---> ¿¿¿Se podría cambiar por  ConvexHull(X).vertices?????. Creo que sí
     boundary_v = CH.vertices
     
-    #1 plt.figure()
-    #1 plt.plot(X[:,0], X[:,1], 'go')
-    #1 plt.axis('equal')
-    #1 plt.title('Data')
+    plt.figure()
+    plt.plot(X[:,0], X[:,1], 'go')
+    plt.axis('equal')
+    plt.title('Data')
     #figManager = plt.get_current_fig_manager() 
     #figManager.window.showMaximized() # Maximiza la figura
     
     # Muestra la triangulazión inicial
-    #1 plt.figure()
-    #1 plt.triplot(X[:,0], X[:,1], tri.simplices.copy())
-    #1 plt.plot(X[:,0], X[:,1], 'go')
-    #1 plt.plot(X[boundary_v,0], X[boundary_v,1], 'ro', markersize=10)
-    #1 plt.axis('equal')
-    #1 plt.title('Delaunay triangulation')
+    plt.figure()
+    plt.triplot(X[:,0], X[:,1], tri.simplices.copy())
+    plt.plot(X[:,0], X[:,1], 'go')
+    plt.plot(X[boundary_v,0], X[boundary_v,1], 'ro', markersize=10)
+    plt.axis('equal')
+    plt.title('Delaunay triangulation')
     
     # Se crea un array vacío para contener las aristas del cierre no convexo final
     boundary_final = np.empty(shape=[0, 2],dtype=np.int32)
@@ -114,15 +114,15 @@ def calcular_NCH_simple (X, l, extend, contraer_SCH):
             boundary_final = np.append(boundary_final,np.reshape(edge, (-1, 2)),axis=0)
     
     # Muestra la triangulazión final
-    #1 plt.figure()
-    #1 plt.triplot(X[:,0], X[:,1], triangles)
-    #1 plt.plot(X[:,0], X[:,1], 'go')
-    #1 plt.plot(X[boundary_v,0], X[boundary_v,1], 'ro', markersize=10)
-    #1 plt.axis('equal')
-    #1 plt.title('Non-convex clousure with l=%s' %l)
+    plt.figure()
+    plt.triplot(X[:,0], X[:,1], triangles)
+    plt.plot(X[:,0], X[:,1], 'go')
+    plt.plot(X[boundary_v,0], X[boundary_v,1], 'ro', markersize=10)
+    plt.axis('equal')
+    plt.title('Non-convex clousure with l=%s' %l)
     
     # Muestra el borde del cierre no convexo final
-    #1 plt.plot([X[boundary_final[:,0],0],X[boundary_final[:,1],0]],[X[boundary_final[:,0],1],X[boundary_final[:,1],1]],'r-')
+    plt.plot([X[boundary_final[:,0],0],X[boundary_final[:,1],0]],[X[boundary_final[:,0],1],X[boundary_final[:,1],1]],'r-')
       
     if (contraer_SCH == True):
         extend_list = np.arange(extend, 0, -extend/5)
@@ -211,7 +211,7 @@ def calcular_NCH_simple (X, l, extend, contraer_SCH):
         z=z[0][0]
         lenAB = np.linalg.norm(X[v[1]]-incenter_l[z]) 
         extVertex2 = X[v[1]] + sign_ang[z] * (X[v[1]] - incenter_l[z]) / lenAB * extend
-        #1 plt.plot([extVertex1[0],extVertex2[0]],[extVertex1[1],extVertex2[1]],'g--')    
+        plt.plot([extVertex1[0],extVertex2[0]],[extVertex1[1],extVertex2[1]],'g--')    
 
 
     #    plt.plot(incenter_l[z,0],incenter_l[z,1],'yo', markersize=12)
