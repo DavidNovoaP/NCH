@@ -12,7 +12,7 @@ from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 import multiprocessing as mp
 import time
-
+import ast
 
 
 def NCH_train (dataset, n_projections, l, extend, contraer_SCH, threads):

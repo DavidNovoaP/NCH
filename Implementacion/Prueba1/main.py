@@ -6,6 +6,8 @@
 from calcular_NCH_simple import *
 from aux_functions import *
 from Algorithms import *
+from NCH_parallel import *
+from calcular_NCH_simple import *
 
 # #############################################################################
 # Cargar librerías
@@ -47,7 +49,8 @@ if __name__ == '__main__':
     """
     
     # Cargar dataset real
-    path = "C:/Users/DAVID/Desktop/TESIS/NCH/Datasets/MagicTelescope11/magic04.txt"
+    #path = "C:/Users/DAVID/Desktop/TESIS/NCH/Datasets/MagicTelescope11/magic04.txt"
+    path = "C:/Users/usuario/Desktop/LIDIA/TESIS/NCH/Datasets/MagicTelescope11/magic04.txt"
     dataset = pd.read_csv(path)
     
     X = dataset.iloc[:, 0:dataset.shape[1]-1]
@@ -84,7 +87,7 @@ if __name__ == '__main__':
     
     get_ipython().run_line_magic('matplotlib', 'qt')
     plt.close('all')
-    
+
     """
     l = 0.75        # Hiperparámetro del modelo, distancia mínima de las aristas (más L => menos ajustado)
     extend = 1.2   # Indica la longitud en que se extiende cada vértice del cierre no convexo
@@ -107,19 +110,19 @@ if __name__ == '__main__':
     # Evaluar resultados 
     titulo = "-L: "+str(l) + ", Extend: " + str(extend) + ", Proyecciones: " + str(n_proy)
     calcular_metricas(Y_test, result, titulo)
-    
-    
-    
-    
-    
     """
+    
+    
+    
+    
+    
     
     # #############################################################################
     # Non Convex Hull
     
-    NCH_parameters1 = [200, 500] # Proyecciones
-    NCH_parameters2 = [0.5, 0.75, 1, 1.5, 2] # l
-    NCH_parameters3 = [0.2, 0.5, 1, 1.5] # extend
+    NCH_parameters1 = [1000] # Proyecciones
+    NCH_parameters2 = [0.5, 0.75] # l
+    NCH_parameters3 = [ 0.5, 1] # extend
     NCH_parameters4 = [10] # threads
     NCH_results = []
     for i in NCH_parameters1:
@@ -139,7 +142,7 @@ if __name__ == '__main__':
                     cm = calcular_metricas(Y_test, NCH_predict, titulo)
                     cm.append(titulo)
                     NCH_results.append(cm)
-
+    """
     # #############################################################################
     # Robust Covariance
     
@@ -235,7 +238,7 @@ if __name__ == '__main__':
     # Autoencoder
     
     AE_parameters1 = [[20,5,20], [30,15,30], [5,2,5]] # hidden layers
-    AE_parameters2 = [100, 200] # epochs
+    AE_parameters2 = [1000] # epochs
     AE_parameters3 = [0.01, 0.02, 0.05, 0.1, 0.2] # contamination
     AE_results = []
     
@@ -284,10 +287,10 @@ if __name__ == '__main__':
                 cm = calcular_metricas(Y_test, SVDD_predict, titulo)
                 cm.append(titulo)
                 SVDD_results.append(cm)  
+    """          
                 
-                
-with open("AE_results.txt", "w") as output:
-    output.write(str(AE_results))
+#with open("AE_results.txt", "w") as output:
+#    output.write(str(AE_results))
     
     
     

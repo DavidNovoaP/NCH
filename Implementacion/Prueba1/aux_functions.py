@@ -210,3 +210,35 @@ def calcular_metricas (Y_test, result, titulo):
     print("")
     return [TN, FP, FN, TP]
     
+def cargar_resultados_txt (path):
+    import ast
+    lines = []
+    with open(path, "r") as reader:
+        lines.append(reader.readline())
+    return ast.literal_eval(lines[0])
+
+def parsear_y_calcular_metricas (list_results):
+    desired_output = []
+    for result in list_results:
+        TN, FP, FN, TP, info = result 
+        sensibilidad = TP/(TP+FN)
+        especificidad = TN/(TN+FP)
+        precision = (TP+TN)/(TP+TN+FP+FN)
+        similitud = 1-(math.sqrt((1-(TP+TN)/(TP+TN+FP+FN))**2+(1-TP/(TP+FN))**2)/math.sqrt(2))
+    
+        desired_output.append([sensibilidad, especificidad, precision, similitud, info])
+    return desired_output
+
+def obtener_mejor_metodo (list_results, index_metric):
+    list_results_target_metric = []
+    for result in list_results:
+        list_results_target_metric.append(result[index_metric])
+        
+    max_value = max(list_results_target_metric)
+    max_index = list_results_target_metric.index(max_value)
+    return list_results[max_index]
+
+
+
+
+

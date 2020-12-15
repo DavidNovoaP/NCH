@@ -2,6 +2,7 @@
 
 
 import numpy as np
+import cvxopt
 from cvxopt import matrix, solvers
 import sklearn.metrics.pairwise as smp
 import time
