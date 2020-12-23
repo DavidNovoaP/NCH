@@ -29,7 +29,7 @@ def NCH_train (dataset, n_projections, l, extend, contraer_SCH):
     
     print("-------------")
     print("Projection: ", 0) 
-    vertices_aux, aristas_aux, vertices_expandidos, orden_vertices_aux, factor_expansion_aux =  calcular_NCH_simple_con_graficas(dataset_projected[0], l, extend, contraer_SCH)
+    vertices_aux, aristas_aux, vertices_expandidos, orden_vertices_aux, factor_expansion_aux =  calcular_NCH_simple(dataset_projected[0], l, extend, contraer_SCH)
     l_vertices.append(vertices_aux)
     l_aristas.append(aristas_aux)
     l_vertices_expandidos.append(vertices_expandidos)
@@ -67,10 +67,25 @@ def NCH_classify (dataset, model):
     projections, l_vertices, l_aristas, l_vertices_expandidos, l_orden_vertices = model
     
     # Proyectamos los datos a clasificar
+    print("proyectar datos")
+    tic = time.perf_counter() 
+    # Proyectamos los datos a clasificar
     dataset_projected = project_Dataset(dataset, projections)
+    toc = time.perf_counter() 
+    print("tiempo: ", toc-tic)
     
+    print("check dentro/fuera")
+    tic = time.perf_counter() 
     result = check_if_points_are_inside_polygons(dataset_projected, model)
-
+    toc = time.perf_counter() 
+    print("tiempo: ", toc-tic)
+    
+    print("combinar")
+    tic = time.perf_counter()
     result = combinar_clasificaciones(result) 
+    toc = time.perf_counter() 
+    print("tiempo: ", toc-tic)
     print("-------------")
+
+    
     return result

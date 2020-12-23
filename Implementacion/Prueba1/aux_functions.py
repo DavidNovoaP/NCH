@@ -62,6 +62,13 @@ def change_target_value_01(df):
         return 0
     elif df == -1:
         return 1
+ 
+def change_target_value_MNIST(df):
+    anomaly_label = 0
+    if df == anomaly_label:
+        return 1
+    else:
+        return 0
     
 def array_to_sequence_of_vertices (data):
     # Función auxiliar para transformar una matriz de numpy de vértices en una lista con el formato [(X1,Y1), (X2,Y2), ... , (Xn,Yn)]

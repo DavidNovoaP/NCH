@@ -1,0 +1,1 @@
+[[8938, 82, 978, 2, 'AE -hidden layers: [20, 5, 20] -Epochs: 500 -Contamination: 0.01 -Tiempo train/test: 136.5726716 9.829651300000023']]

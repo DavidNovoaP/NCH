@@ -1,0 +1,1 @@
+[[6365, 2655, 460, 520, 'NCH -Proyecciones: 10 -l: 1.25 -Extend: 1.5 -Threads: 10 -Tiempo train/test: 16.89881840000004 40.22868489999996'], [4918, 4102, 324, 656, 'NCH -Proyecciones: 10 -l: 1 -Extend: 1.5 -Threads: 10 -Tiempo train/test: 21.469264600000002 60.58510179999999']]

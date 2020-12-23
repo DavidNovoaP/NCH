@@ -31,10 +31,10 @@ def NCH_train (dataset, n_projections, l, extend, contraer_SCH, threads):
     arguments_iterable = []
     for i in range (0, n_projections):
         arguments_iterable.append((dataset_projected[i], l, extend, contraer_SCH))
-        
+    
     tic = time.perf_counter()    
     process_pool = mp.Pool(threads)
-    result = process_pool.starmap(calcular_NCH_simple, arguments_iterable)
+    result = process_pool.starmap(calcular_NCH_simple_con_graficas, arguments_iterable)
     process_pool.close()
     process_pool.join()
     
@@ -67,21 +67,11 @@ def NCH_train (dataset, n_projections, l, extend, contraer_SCH, threads):
 def NCH_classify (dataset, model, threads):        
     projections, l_vertices, l_aristas, l_vertices_expandidos, l_orden_vertices = model
     
-     
-
     # Proyectamos los datos a clasificar
-    tic = time.perf_counter() 
     dataset_projected = project_Dataset(dataset, projections)
     
-    tic = time.perf_counter()
     result = check_if_points_are_inside_polygons_p(dataset_projected, model, threads)
-    toc = time.perf_counter()
-    """
-    tic = time.perf_counter()
-    result2 = check_if_points_are_inside_polygons(dataset_projected, model)
-    toc = time.perf_counter()
-    print("Tiempo 2: %0.4f segundos" % (toc - tic)) 
-    """
+    
     result = combinar_clasificaciones(result) 
     
     return result

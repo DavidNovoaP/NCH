@@ -26,6 +26,7 @@ from sklearn.metrics import confusion_matrix
 import multiprocessing as mp
 import time
 from sklearn import svm
+import io
 
 if __name__ == '__main__':
     
@@ -48,10 +49,18 @@ if __name__ == '__main__':
         X = X[:,[0,2]]
     """
     
-    # Cargar dataset real
+    # #############################################################################
+    # Cargar datasets reales 
+    
+    # #############################################################################
+    # Telescope
+    
+    """
     path = "C:/Users/DAVID/Desktop/TESIS/NCH/Datasets/MagicTelescope11/magic04.txt"
     #path = "C:/Users/usuario/Desktop/LIDIA/TESIS/NCH/Datasets/MagicTelescope11/magic04.txt"
     dataset = pd.read_csv(path)
+    dataset = dataset.drop_duplicates()
+    dataset = dataset.reset_index(drop = True)
     
     X = dataset.iloc[:, 0:dataset.shape[1]-1]
     Y = dataset.iloc[:, dataset.shape[1]-1]
@@ -61,9 +70,61 @@ if __name__ == '__main__':
     # 'h' = hadron (background) = anomaly class
     Y = Y.apply(change_target_value_GH)
     
+    
+    # #############################################################################
+    # MinibooNE
+    
+    path = "C:/Users/DAVID/Desktop/TESIS/Proyectos/NCH/Datasets/Miniboone/MiniBooNE_PID.txt" # 
+    dataset = []
+    with io.open(path, mode="r", encoding="utf-8") as f:
+        next(f)
+        for line in f:
+            dataset.append(map(float, line.split()))
+    dataset = pd.DataFrame(dataset)
+    dataset.insert(dataset.shape[1], "Class", -1)
+    dataset.iloc[0:36499, dataset.shape[1]-1] = 1
+    dataset.iloc[36499:dataset.shape[0], dataset.shape[1]-1] = 0
+    dataset.columns = dataset.columns.astype(str)
+    dataset = dataset.drop_duplicates()
+    dataset = dataset.reset_index(drop = True)
+    X = dataset.iloc[:, 0:dataset.shape[1]-1]
+    Y = dataset.iloc[:, dataset.shape[1]-1]
+    """
+    
+    # #############################################################################
+    # MNIST
+    from mnist import MNIST
+    path_mnist = "C:/Users/DAVID/Desktop/TESIS/Proyectos/NCH/Datasets/MNIST/"
+    mndata = MNIST(path_mnist)
+    X_train, Y_train = mndata.load_training()
+    X_test, Y_test = mndata.load_testing()
+    
+    X_train = pd.DataFrame(X_train)
+    X_test = pd.DataFrame(X_test)
+    Y_train = pd.Series(Y_train)
+    Y_test = pd.Series(Y_test)
+    
+    Y_train = Y_train.apply(change_target_value_MNIST)
+    Y_test = Y_test.apply(change_target_value_MNIST)
+    
+    normal_data_indexes = Y_train.index[Y_train == 0].tolist()
+    X_train = X_train.iloc[normal_data_indexes, :]
+    X_train.columns = X_train.columns.astype(str)
+    X_test.columns = X_test.columns.astype(str)
+    
+    X_train = X_train.drop_duplicates()
+    X_train = X_train.reset_index(drop = True)
+    
+    model_normalizer = NormalizeData_Train(X_train)
+    X_train = NormalizeData(X_train, model_normalizer)
+    X_test = NormalizeData(X_test, model_normalizer)
+    
+    X_train = X_train.iloc[0:20000, :]
+    Y_train = Y_train.iloc[0:20000]
+    
     # #############################################################################
     # Normalizar datos
-    
+    """
     model_normalizer = NormalizeData_Train(X)
     X_normalized = NormalizeData(X, model_normalizer)
     
@@ -87,11 +148,11 @@ if __name__ == '__main__':
     
     get_ipython().run_line_magic('matplotlib', 'qt')
     plt.close('all')
-    """
-   
-    l = 0.75        # Hiperparámetro del modelo, distancia mínima de las aristas (más L => menos ajustado)
-    extend = 1.2   # Indica la longitud en que se extiende cada vértice del cierre no convexo
-    n_proy = 100 # Número de proyecciones a emplear
+    
+    
+    l = 1.5        # Hiperparámetro del modelo, distancia mínima de las aristas (más L => menos ajustado)
+    extend = 0.5   # Indica la longitud en que se extiende cada vértice del cierre no convexo
+    n_proy = 50 # Número de proyecciones a emplear
     threads = 10     # Número de procesadores a emplear en el caso de multiproceso
 
     # Entrenar    
@@ -110,14 +171,14 @@ if __name__ == '__main__':
     # Evaluar resultados 
     titulo = "-L: "+str(l) + ", Extend: " + str(extend) + ", Proyecciones: " + str(n_proy)
     calcular_metricas(Y_test, result, titulo)
-    """
     
+    """
     # #############################################################################
     # Non Convex Hull
-    
-    NCH_parameters1 = [2000] # Proyecciones
-    NCH_parameters2 = [0.5, 0.75, 1, 1.25] # l
-    NCH_parameters3 = [0.5, 1, 1.5] # extend
+    """
+    NCH_parameters1 = [500] # Proyecciones
+    NCH_parameters2 = [1, 1.25] # l
+    NCH_parameters3 = [0.5, 1.5] # extend
     NCH_parameters4 = [10] # threads
     NCH_results = []
     for i in NCH_parameters1:
@@ -140,7 +201,7 @@ if __name__ == '__main__':
     
     # #############################################################################
     # Robust Covariance
-    """
+    
     RC_parameters1 = [0.01, 0.05, 0.1, 0.2] # Contamination
     RC_results = []
     for i in RC_parameters1:
@@ -180,7 +241,7 @@ if __name__ == '__main__':
                 cm = calcular_metricas(Y_test, OCSVM_predict, titulo)
                 cm.append(titulo)
                 OCSVM_results.append(cm)
-        
+    """
     # #############################################################################
     # Isolation Forest
     
@@ -209,8 +270,8 @@ if __name__ == '__main__':
     # #############################################################################
     # Local Outlier Factor
     
-    LOF_parameters1 = [5, 15, 50, 100, 200] # n_neighbors
-    LOF_parameters2 = [0.01, 0.05, 0.1, 0.2] # contamination
+    LOF_parameters1 = [15, 50] # n_neighbors
+    LOF_parameters2 = [0.01, 0.2] # contamination
     LOF_results = []
     
     for i in LOF_parameters1:
@@ -232,9 +293,9 @@ if __name__ == '__main__':
     # #############################################################################
     # Autoencoder
     
-    AE_parameters1 = [[20,5,20], [30,15,30], [5,2,5]] # hidden layers
-    AE_parameters2 = [1000] # epochs
-    AE_parameters3 = [0.01, 0.02, 0.05, 0.1, 0.2] # contamination
+    AE_parameters1 = [[100,20,100], [5,2,5], [400,50, 400]] # hidden layers
+    AE_parameters2 = [500] # epochs
+    AE_parameters3 = [0.01, 0.05, 0.1, 0.2] # contamination
     AE_results = []
     
     for i in AE_parameters1:
@@ -260,8 +321,8 @@ if __name__ == '__main__':
     # #############################################################################
     # SVDD
     
-    SVDD_parameters1 = [0.6, 0.8, 0.9] # positive_penalty
-    SVDD_parameters2 = [0.6, 0.8, 0.9] # negative_penalty
+    SVDD_parameters1 = [0.6, 0.9] # positive_penalty
+    SVDD_parameters2 = [0.6, 0.9] # negative_penalty
     SVDD_parameters3 = ["1", "2", "3", "4"] # kernel
     SVDD_results = []
 
@@ -282,10 +343,10 @@ if __name__ == '__main__':
                 cm = calcular_metricas(Y_test, SVDD_predict, titulo)
                 cm.append(titulo)
                 SVDD_results.append(cm)  
-    """          
-                
-with open("NCH_results2.txt", "w") as output:
-    output.write(str(NCH_results))
-    
+    """        
+    with open("AE_results.txt", "w") as output:
+        output.write(str(AE_results))
+    """    
+
     
     
