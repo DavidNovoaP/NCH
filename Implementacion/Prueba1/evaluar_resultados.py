@@ -7,7 +7,6 @@ Created on Tue Dec 15 10:04:39 2020
 # #############################################################################
 # Cargar scripts propios
 
-from calcular_NCH_simple import *
 from aux_functions import *
 
 # #############################################################################
@@ -22,7 +21,7 @@ import pandas as pd
 
 if __name__ == '__main__':
     
-    path = "C:/Users/DAVID/Desktop/TESIS/Proyectos/NCH/Implementacion/Prueba1/resultados3"
+    path = "C:/Users/DAVID/Desktop/TESIS/Proyectos/NCH/Implementacion/Prueba1/resultados4"
     
     AE_results = cargar_resultados_txt(path+"/AE_results.txt")
     IF_results = cargar_resultados_txt(path+"/IF_results.txt")

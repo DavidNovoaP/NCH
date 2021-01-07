@@ -224,6 +224,7 @@ def calcular_NCH_simple_con_graficas (X, l, extend, contraer_SCH):
         
         elif (e == 0):
             extend = 0
+            extVertex_l = X
             print("extend es 0 porque ningun extend provoca poligonos simples: ", e) 
     
     print("extend final: ", extend)  

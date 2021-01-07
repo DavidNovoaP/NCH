@@ -6,8 +6,9 @@
 from calcular_NCH_simple import *
 from aux_functions import *
 from Algorithms import *
-from NCH_parallel import *
 from calcular_NCH_simple import *
+from NCH_parallel import *
+
 
 # #############################################################################
 # Cargar librerías
@@ -27,6 +28,8 @@ import multiprocessing as mp
 import time
 from sklearn import svm
 import io
+
+
 
 if __name__ == '__main__':
     
@@ -55,7 +58,7 @@ if __name__ == '__main__':
     # #############################################################################
     # Telescope
     
-    """
+    
     path = "C:/Users/DAVID/Desktop/TESIS/NCH/Datasets/MagicTelescope11/magic04.txt"
     #path = "C:/Users/usuario/Desktop/LIDIA/TESIS/NCH/Datasets/MagicTelescope11/magic04.txt"
     dataset = pd.read_csv(path)
@@ -73,7 +76,7 @@ if __name__ == '__main__':
     
     # #############################################################################
     # MinibooNE
-    
+    """
     path = "C:/Users/DAVID/Desktop/TESIS/Proyectos/NCH/Datasets/Miniboone/MiniBooNE_PID.txt" # 
     dataset = []
     with io.open(path, mode="r", encoding="utf-8") as f:
@@ -89,7 +92,7 @@ if __name__ == '__main__':
     dataset = dataset.reset_index(drop = True)
     X = dataset.iloc[:, 0:dataset.shape[1]-1]
     Y = dataset.iloc[:, dataset.shape[1]-1]
-    """
+    
     
     # #############################################################################
     # MNIST
@@ -121,10 +124,10 @@ if __name__ == '__main__':
     
     X_train = X_train.iloc[0:20000, :]
     Y_train = Y_train.iloc[0:20000]
-    
+    """
     # #############################################################################
     # Normalizar datos
-    """
+    
     model_normalizer = NormalizeData_Train(X)
     X_normalized = NormalizeData(X, model_normalizer)
     
@@ -142,18 +145,21 @@ if __name__ == '__main__':
     
     X_test = X_normalized.iloc[test_normal_data_indexes + anomaly_data_indexes, :]
     Y_test = Y.iloc[test_normal_data_indexes + anomaly_data_indexes]
+
+    #X_train = X_train.iloc[0:200, :]
+    #Y_train = Y_train.iloc[0:200]
     
     # #############################################################################
     # Entrenar  algoritmo
-    
+    """
     get_ipython().run_line_magic('matplotlib', 'qt')
     plt.close('all')
     
     
-    l = 1.5        # Hiperparámetro del modelo, distancia mínima de las aristas (más L => menos ajustado)
-    extend = 0.5   # Indica la longitud en que se extiende cada vértice del cierre no convexo
-    n_proy = 50 # Número de proyecciones a emplear
-    threads = 10     # Número de procesadores a emplear en el caso de multiproceso
+    l = 0.75        # Hiperparámetro del modelo, distancia mínima de las aristas (más L => menos ajustado)
+    extend = 0.25   # Indica la longitud en que se extiende cada vértice del cierre no convexo
+    n_proy = 5 # Número de proyecciones a emplear
+    threads = 1     # Número de procesadores a emplear en el caso de multiproceso
 
     # Entrenar    
     tic = time.perf_counter() 
@@ -172,14 +178,13 @@ if __name__ == '__main__':
     titulo = "-L: "+str(l) + ", Extend: " + str(extend) + ", Proyecciones: " + str(n_proy)
     calcular_metricas(Y_test, result, titulo)
     
-    """
     # #############################################################################
     # Non Convex Hull
     """
     NCH_parameters1 = [500] # Proyecciones
-    NCH_parameters2 = [1, 1.25] # l
-    NCH_parameters3 = [0.5, 1.5] # extend
-    NCH_parameters4 = [10] # threads
+    NCH_parameters2 = [0.75, 1, 1.25, 1.5] # l
+    NCH_parameters3 = [0.25, 0.5, 0.75, 1, 1.25, 1.5] # extend
+    NCH_parameters4 = [5] # threads
     NCH_results = []
     for i in NCH_parameters1:
         for j in NCH_parameters2:
@@ -202,6 +207,7 @@ if __name__ == '__main__':
     # #############################################################################
     # Robust Covariance
     
+    """
     RC_parameters1 = [0.01, 0.05, 0.1, 0.2] # Contamination
     RC_results = []
     for i in RC_parameters1:
@@ -241,7 +247,7 @@ if __name__ == '__main__':
                 cm = calcular_metricas(Y_test, OCSVM_predict, titulo)
                 cm.append(titulo)
                 OCSVM_results.append(cm)
-    """
+    
     # #############################################################################
     # Isolation Forest
     
@@ -270,8 +276,8 @@ if __name__ == '__main__':
     # #############################################################################
     # Local Outlier Factor
     
-    LOF_parameters1 = [15, 50] # n_neighbors
-    LOF_parameters2 = [0.01, 0.2] # contamination
+    LOF_parameters1 = [15, 50, 100] # n_neighbors
+    LOF_parameters2 = [0.01, 0.1, 0.2] # contamination
     LOF_results = []
     
     for i in LOF_parameters1:
@@ -343,10 +349,10 @@ if __name__ == '__main__':
                 cm = calcular_metricas(Y_test, SVDD_predict, titulo)
                 cm.append(titulo)
                 SVDD_results.append(cm)  
-    """        
-    with open("AE_results.txt", "w") as output:
-        output.write(str(AE_results))
-    """    
+           
+    with open("LOF_results_test2.txt", "w") as output:
+        output.write(str(LOF_results))
+    """  
 
     
     

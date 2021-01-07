@@ -17,7 +17,7 @@ from aux_functions import *
 # #############################################################################
 def calcular_NCH_simple (X, l, extend, contraer_SCH):
     # Delaunay tesselation of X
-    print("comenzando triangularizacion wasaaa")
+    print("comenzando triangularizacion")
     tic = time.perf_counter()
     tri = Delaunay(X)
     toc = time.perf_counter()
@@ -223,6 +223,7 @@ def calcular_NCH_simple (X, l, extend, contraer_SCH):
             print("tiempo poda aristas borde: ", toc1-tic1)
         elif (e == 0):
             extend = 0
+            extVertex_l = X
     
     
     toc = time.perf_counter()

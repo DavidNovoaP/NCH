@@ -5,7 +5,6 @@ Created on Thu Dec  3 10:57:12 2020
 @author: DAVID
 """
 from calcular_NCH_simple import *
-from calcular_NCH_simple_con_graficas import *
 from aux_functions import *
 import numpy as np
 from shapely.geometry import Point
@@ -34,8 +33,9 @@ def NCH_train (dataset, n_projections, l, extend, contraer_SCH, threads):
     
     tic = time.perf_counter()    
     process_pool = mp.Pool(threads)
-    result = process_pool.starmap(calcular_NCH_simple_con_graficas, arguments_iterable)
+    result = process_pool.starmap(calcular_NCH_simple, arguments_iterable)
     process_pool.close()
+    #process_pool.terminate()
     process_pool.join()
     
     toc = time.perf_counter()
@@ -60,18 +60,18 @@ def NCH_train (dataset, n_projections, l, extend, contraer_SCH, threads):
     elif (((np.unique(l_factor_expansion)) == 0) and (contraer_SCH == True)):
         l_vertices_expandidos = False
         print("Se han seleccionado varias proyecciones pero NO emplearán sus cierres expandidos ya que son complejos.")    
-    print("-------------")  
+    print("------------- Trained.")  
     return projections, l_vertices, l_aristas, l_vertices_expandidos, l_orden_vertices
 
 
 def NCH_classify (dataset, model, threads):        
     projections, l_vertices, l_aristas, l_vertices_expandidos, l_orden_vertices = model
-    
+    print("Clasificar...")
     # Proyectamos los datos a clasificar
     dataset_projected = project_Dataset(dataset, projections)
     
     result = check_if_points_are_inside_polygons_p(dataset_projected, model, threads)
     
     result = combinar_clasificaciones(result) 
-    
+    print("Clasificado")
     return result

@@ -154,6 +154,7 @@ def check_if_points_are_inside_polygons_p (dataset, model, threads):
     process_pool = mp.Pool(threads)
     result = process_pool.starmap(check_one_projection, arguments_iterable)
     process_pool.close()
+    #process_pool.terminate()
     process_pool.join()
     
     return result
