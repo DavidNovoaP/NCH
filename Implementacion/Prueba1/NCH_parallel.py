@@ -11,10 +11,10 @@ from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 import multiprocessing as mp
 import time
-import ast
 
 
-def NCH_train (dataset, n_projections, l, extend, contraer_SCH, threads):
+def NCH_train (dataset, n_projections, l, extend, contraer_SCH, process_pool):
+    print("Comenzando entrenamiento...")
     # Generamos las proyecciones bidimensionales
     projections = generate_Projections(n_projections, dataset.shape[1])
     # Proyectamos los datos en estos espacios 2D
@@ -32,11 +32,15 @@ def NCH_train (dataset, n_projections, l, extend, contraer_SCH, threads):
         arguments_iterable.append((dataset_projected[i], l, extend, contraer_SCH))
     
     tic = time.perf_counter()    
-    process_pool = mp.Pool(threads)
-    result = process_pool.starmap(calcular_NCH_simple, arguments_iterable)
-    process_pool.close()
+    #process_pool = mp.Pool(threads)
+    result = list(process_pool.imap(calcular_NCH_simple, arguments_iterable))
+    #process_pool.close()
     #process_pool.terminate()
-    process_pool.join()
+    #process_pool.join()
+    
+    #process_pool.close()
+    #process_pool.restart()
+
     
     toc = time.perf_counter()
     for i in range (0, n_projections):
@@ -49,29 +53,29 @@ def NCH_train (dataset, n_projections, l, extend, contraer_SCH, threads):
 
     
     print("-------------")
-    #print("l_factor_expansion", l_factor_expansion)
+    #print("l_factor_expansion", np.unique(l_factor_expansion))
     # Chekear si todos los factores de expansion son el mismo para emplear el NCH o el SNCH
-    if ((len(np.unique(l_factor_expansion))) != 1):
+    if (((len(np.unique(l_factor_expansion))) > 1) and (contraer_SCH == True)):
         l_vertices_expandidos = False
         print("Los factores de expansion de las distintas proyecciones son diferentes por lo que no se va a emplear el cierre escalado.")
     elif (l_factor_expansion == [0]):
         l_vertices_expandidos = False
         print("Solo se ha seleccionado una única proyección y NO empleará el cierre expandido ya que es complejo.")
-    elif (((np.unique(l_factor_expansion)) == 0) and (contraer_SCH == True)):
+    elif ((len(np.unique(l_factor_expansion)) == 1) and ((np.unique(l_factor_expansion)) == 0) and (contraer_SCH == True)):
         l_vertices_expandidos = False
         print("Se han seleccionado varias proyecciones pero NO emplearán sus cierres expandidos ya que son complejos.")    
-    print("------------- Trained.")  
+    print("-------------")   
     return projections, l_vertices, l_aristas, l_vertices_expandidos, l_orden_vertices
 
 
-def NCH_classify (dataset, model, threads):        
+def NCH_classify (dataset, model, process_pool):        
     projections, l_vertices, l_aristas, l_vertices_expandidos, l_orden_vertices = model
-    print("Clasificar...")
+    print("Clasificar datos test...")
     # Proyectamos los datos a clasificar
     dataset_projected = project_Dataset(dataset, projections)
     
-    result = check_if_points_are_inside_polygons_p(dataset_projected, model, threads)
+    result = check_if_points_are_inside_polygons_p(dataset_projected, model, process_pool)
     
     result = combinar_clasificaciones(result) 
-    print("Clasificado")
+    print("Clasificados ")
     return result

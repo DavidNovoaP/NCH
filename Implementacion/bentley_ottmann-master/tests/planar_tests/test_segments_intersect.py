@@ -1,10 +1,10 @@
 from typing import List
 
 import pytest
+from ground.base import Context
+from ground.hints import Segment
 from hypothesis import given
 
-from bentley_ottmann.core.linear import segments_intersections
-from bentley_ottmann.hints import Segment
 from bentley_ottmann.planar import segments_intersect
 from tests.utils import (reverse_segment,
                          reverse_segment_coordinates)
@@ -26,16 +26,19 @@ def test_base_case(segments: List[Segment]) -> None:
 
 
 @given(strategies.non_empty_segments_lists)
-def test_step(segments: List[Segment]) -> None:
+def test_step(context: Context, segments: List[Segment]) -> None:
     first_segment, *rest_segments = segments
 
     result = segments_intersect(rest_segments)
     next_result = segments_intersect(segments)
 
-    assert next_result is (result
-                           or any(segments_intersections(first_segment,
-                                                         segment)
-                                  for segment in rest_segments))
+    assert (next_result
+            is (result
+                or any(context.segments_intersections(first_segment.start,
+                                                      first_segment.end,
+                                                      segment.start,
+                                                      segment.end)
+                       for segment in rest_segments)))
 
 
 @given(strategies.segments_lists)

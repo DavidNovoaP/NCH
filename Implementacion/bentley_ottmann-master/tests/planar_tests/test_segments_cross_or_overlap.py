@@ -1,13 +1,13 @@
 from typing import List
 
 import pytest
+from ground.base import (Context,
+                         SegmentsRelationship)
 from hypothesis import given
 
-from bentley_ottmann.core.linear import (SegmentsRelationship,
-                                         segments_relationship)
-from bentley_ottmann.hints import Segment
 from bentley_ottmann.planar import segments_cross_or_overlap
-from tests.utils import (reverse_segment,
+from tests.utils import (Segment,
+                         reverse_segment,
                          reverse_segment_coordinates)
 from . import strategies
 
@@ -27,7 +27,7 @@ def test_base_case(segments: List[Segment]) -> None:
 
 
 @given(strategies.non_empty_segments_lists)
-def test_step(segments: List[Segment]) -> None:
+def test_step(context: Context, segments: List[Segment]) -> None:
     first_segment, *rest_segments = segments
 
     result = segments_cross_or_overlap(rest_segments)
@@ -35,7 +35,10 @@ def test_step(segments: List[Segment]) -> None:
 
     assert (next_result
             is (result
-                or any(segments_relationship(first_segment, segment)
+                or any(context.segments_relationship(first_segment.start,
+                                                     first_segment.end,
+                                                     segment.start,
+                                                     segment.end)
                        in (SegmentsRelationship.CROSS,
                            SegmentsRelationship.OVERLAP)
                        for segment in rest_segments)))

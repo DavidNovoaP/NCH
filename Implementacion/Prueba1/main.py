@@ -8,6 +8,7 @@ from aux_functions import *
 from Algorithms import *
 from calcular_NCH_simple import *
 from NCH_parallel import *
+#from NCH import *
 
 
 # #############################################################################
@@ -22,17 +23,19 @@ from IPython import get_ipython
 from sklearn.datasets.samples_generator import make_blobs, make_moons, make_s_curve # Generar datasets artificiales
 from scipy.spatial import Delaunay, ConvexHull # Triangulizacion de Delaunay y calculo del Convex Hull
 from bentley_ottmann.planar import edges_intersect # Implementacion del algoritmo Bentley Ottmann
+
+
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
 import multiprocessing as mp
 import time
 from sklearn import svm
-import io
+
+from pathos.multiprocessing import ProcessingPool as Pool
 
 
 
 if __name__ == '__main__':
-    
     # #############################################################################
     # Generar datasets artificiales
     """
@@ -146,8 +149,8 @@ if __name__ == '__main__':
     X_test = X_normalized.iloc[test_normal_data_indexes + anomaly_data_indexes, :]
     Y_test = Y.iloc[test_normal_data_indexes + anomaly_data_indexes]
 
-    #X_train = X_train.iloc[0:200, :]
-    #Y_train = Y_train.iloc[0:200]
+    X_train = X_train.iloc[0:10000, :]
+    Y_train = Y_train.iloc[0:10000]
     
     # #############################################################################
     # Entrenar  algoritmo
@@ -158,19 +161,21 @@ if __name__ == '__main__':
     
     l = 0.75        # Hiperparámetro del modelo, distancia mínima de las aristas (más L => menos ajustado)
     extend = 0.25   # Indica la longitud en que se extiende cada vértice del cierre no convexo
-    n_proy = 5 # Número de proyecciones a emplear
-    threads = 1     # Número de procesadores a emplear en el caso de multiproceso
+    n_proy = 100 # Número de proyecciones a emplear
+    threads = 8     # Número de procesadores a emplear en el caso de multiproceso
 
-    # Entrenar    
+    # Entrenar   
+    process_pool = mp.Pool(threads)
+    
     tic = time.perf_counter() 
-    model = NCH_train (X_train.to_numpy(), n_proy, l, extend, False, threads)
+    model = NCH_train (X_train.to_numpy(), n_proy, l, extend, False, threads, process_pool)
     toc = time.perf_counter()
     print("Tiempo TRAIN con %i procesadores: %0.4f segundos" % (threads, toc - tic)) 
     print("-------------")
     
     
     tic = time.perf_counter() 
-    result = NCH_classify (X_test.to_numpy(), model, threads)
+    result = NCH_classify (X_test.to_numpy(), model, threads, process_pool)
     toc = time.perf_counter()
     print("Tiempo TEST con %i procesadores: %0.4f segundos" % (threads, toc - tic)) 
     
@@ -178,25 +183,35 @@ if __name__ == '__main__':
     titulo = "-L: "+str(l) + ", Extend: " + str(extend) + ", Proyecciones: " + str(n_proy)
     calcular_metricas(Y_test, result, titulo)
     
+    process_pool.close()
+    process_pool.join()
+    
+    """
+    
     # #############################################################################
     # Non Convex Hull
-    """
-    NCH_parameters1 = [500] # Proyecciones
-    NCH_parameters2 = [0.75, 1, 1.25, 1.5] # l
-    NCH_parameters3 = [0.25, 0.5, 0.75, 1, 1.25, 1.5] # extend
-    NCH_parameters4 = [5] # threads
+    
+    
+    
+    NCH_parameters1 = [100] # Proyecciones
+    NCH_parameters2 = [1.75, 1] #, 1.25, 1.5] # l
+    NCH_parameters3 = [0.25] #, 0.5 , 0.75, 1, 1.25, 1.5] # extend
+    NCH_parameters4 = [6] # threads
     NCH_results = []
+    
+    process_pool = mp.Pool(NCH_parameters4[0])
+    #process_pool = Pool(nodes=2)
+    
     for i in NCH_parameters1:
         for j in NCH_parameters2:
             for k in NCH_parameters3:
                 for l in NCH_parameters4:
-                    
                     tic_train = time.perf_counter() 
-                    NCH_model = NCH_train (X_train.to_numpy(), i, j, k, False, l)
+                    NCH_model = NCH_train (X_train.to_numpy(), i, j, k, False, process_pool)
                     toc_train = time.perf_counter()
                     
                     tic_test = time.perf_counter() 
-                    NCH_predict = NCH_classify (X_test.to_numpy(), NCH_model, l)
+                    NCH_predict = NCH_classify (X_test.to_numpy(), NCH_model, process_pool)
                     toc_test = time.perf_counter()
                     
                     titulo = "NCH -Proyecciones: " + str(i) + " -l: " + str(j) + " -Extend: " + str(k) + " -Threads: " + str(l) + " -Tiempo train/test: "+ str(toc_train-tic_train) + " "+ str(toc_test-tic_test)
@@ -204,10 +219,13 @@ if __name__ == '__main__':
                     cm.append(titulo)
                     NCH_results.append(cm)
     
+    process_pool.close()
+    process_pool.join()
+    """
     # #############################################################################
     # Robust Covariance
     
-    """
+    
     RC_parameters1 = [0.01, 0.05, 0.1, 0.2] # Contamination
     RC_results = []
     for i in RC_parameters1:

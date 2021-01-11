@@ -12,10 +12,10 @@ from scipy.spatial import Delaunay, ConvexHull
 from IPython import get_ipython
 from bentley_ottmann.planar import edges_intersect # Implementacion del algoritmo Bentley Ottmann
 
-from calcular_NCH_simple import *
 from aux_functions import *
 # #############################################################################
-def calcular_NCH_simple (X, l, extend, contraer_SCH):
+def calcular_NCH_simple (args):
+    X, l, extend, contraer_SCH = args
     # Delaunay tesselation of X
     print("comenzando triangularizacion")
     tic = time.perf_counter()
@@ -214,7 +214,7 @@ def calcular_NCH_simple (X, l, extend, contraer_SCH):
             
             # Comprobar si el SNCH es simple o complejo
             # 2 print("Complejo: ",edges_intersect(array_to_sequence_of_vertices(extVertex_l)))
-            print("comenzando parte simple/complejo")
+            print("comenzando comprobacion poligono simple/complejo")
             tic1 = time.perf_counter()
             if (edges_intersect(array_to_sequence_of_vertices(extVertex_l)) == False):
                 extend = e

@@ -71,11 +71,28 @@ def change_target_value_MNIST(df):
         return 0
     
 def array_to_sequence_of_vertices (data):
-    # Función auxiliar para transformar una matriz de numpy de vértices en una lista con el formato [(X1,Y1), (X2,Y2), ... , (Xn,Yn)]
+    from ground.base import get_context
     
+    context = get_context()    
+    Point = context.point_cls
+    Contour = context.contour_cls
+
+    aux_list = []
+    for i in range (0, data.shape[0]):
+        #aux_list.append((data[i, 0],data[i, 1]))
+        aux_list.append(Point(data[i, 0], data[i, 1]))
+    
+    aux_list = Contour(aux_list)
+    
+    return aux_list
+
+def array_to_sequence_of_vertices2 (data):
+    # Función auxiliar para transformar una matriz de numpy de vértices en una lista con el formato [(X1,Y1), (X2,Y2), ... , (Xn,Yn)]
+
     aux_list = []
     for i in range (0, data.shape[0]):
         aux_list.append((data[i, 0],data[i, 1]))
+
     return aux_list
 
 
@@ -114,11 +131,11 @@ def check_if_points_are_inside_polygons (dataset, model):
         print("Proy:", i)
         if (l_vertices_expandidos != False): # Si los cierres SI se expandieron durante el entrenamiento, utilizamos el SNCH para clasificar
             # Construimos el polígono a partir de los vértices del SNCH
-            polygon = Polygon(array_to_sequence_of_vertices(l_vertices_expandidos[i]))
+            polygon = Polygon(array_to_sequence_of_vertices2(l_vertices_expandidos[i]))
             
         elif (l_vertices_expandidos == False): # Si los cierres NO se expandieron durante el entrenamiento, utilizamos el NCH para clasificar
             # Construimos el polígono a partir de los vértices del NCH
-            polygon = Polygon(array_to_sequence_of_vertices(l_vertices[i][l_orden_vertices[i]]))
+            polygon = Polygon(array_to_sequence_of_vertices2(l_vertices[i][l_orden_vertices[i]]))
             
         for j in range (0, num_datos): # Clasificamos cada uno de los puntos
             #1 print("Dato:", j)    
@@ -134,7 +151,7 @@ def check_if_points_are_inside_polygons (dataset, model):
     
     return l_results
 
-def check_if_points_are_inside_polygons_p (dataset, model, threads):
+def check_if_points_are_inside_polygons_p (dataset, model, process_pool):
     # Función que determina si uno o varios datos pasados como matriz de numpy se encuentran dentro de un modelo NCH entrenado
     
     projections, l_vertices, l_aristas, l_vertices_expandidos, l_orden_vertices = model
@@ -151,19 +168,23 @@ def check_if_points_are_inside_polygons_p (dataset, model, threads):
             parameter = l_vertices[i][l_orden_vertices[i]]
         arguments_iterable.append((l_vertices_expandidos, l_vertices[i], parameter, num_datos, dataset[i]))
         
-    process_pool = mp.Pool(threads)
-    result = process_pool.starmap(check_one_projection, arguments_iterable)
-    process_pool.close()
+    #process_pool = mp.Pool(threads)
+    result = list(process_pool.imap(check_one_projection, arguments_iterable))
+    #process_pool.close()
     #process_pool.terminate()
-    process_pool.join()
+    #process_pool.join()
+    
+    #process_pool.close()
+    #process_pool.restart()
     
     return result
 
-def check_one_projection(l_vertices_ex, vertices, l_vertices_x, n_datos, dataset):   
+def check_one_projection(args):   
+    l_vertices_ex, vertices, l_vertices_x, n_datos, dataset = args
     aux = []
     
     # Construimos el polígono a partir de los vértices del NCH
-    polygon = Polygon(array_to_sequence_of_vertices(l_vertices_x))
+    polygon = Polygon(array_to_sequence_of_vertices2(l_vertices_x))
         
     for j in range (0, n_datos): # Clasificamos cada uno de los puntos
         #1 print("Dato:", j)    
