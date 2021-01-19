@@ -14,8 +14,12 @@ from bentley_ottmann.planar import edges_intersect # Implementacion del algoritm
 
 from calcular_NCH_simple import *
 from aux_functions import *
+
 # #############################################################################
-def calcular_NCH_simple_con_graficas (X, l, extend, contraer_SCH):
+
+def calcular_NCH_simple_con_graficas (args):
+    X, l, extend, contraer_SCH = args
+    
     # Delaunay tesselation of X
     print("comenzando triangularizacion")
     tic = time.perf_counter()

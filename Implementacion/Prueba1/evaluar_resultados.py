@@ -21,7 +21,7 @@ import pandas as pd
 
 if __name__ == '__main__':
     
-    path = "C:/Users/DAVID/Desktop/TESIS/Proyectos/NCH/Implementacion/Prueba1/resultados4"
+    path = "C:/Users/DAVID/Desktop/TESIS/Proyectos/NCH/Implementacion/Prueba1/CURVAS"
     
     AE_results = cargar_resultados_txt(path+"/AE_results.txt")
     IF_results = cargar_resultados_txt(path+"/IF_results.txt")

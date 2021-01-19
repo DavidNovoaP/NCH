@@ -14,29 +14,38 @@ import pandas as pd
 from sklearn.metrics import confusion_matrix
 import math
 import multiprocessing as mp
+import matplotlib.path as mpltPath
 
 # ##################################################################
 # Entrenamiento estandarizador
 
 def NormalizeData_Train(dataframe_proccessed):
     # Entrenamos un normalizador de media cero y desviacion tipica 1 con el dataframe de entrada
-    print("- - -")
-    print("Starting normalizer train...")
+    #print("- - -")
+    #print("Starting normalizer train...")
     scaler = preprocessing.StandardScaler().fit(dataframe_proccessed) 
-    print("Trained.")
+    #print("Trained.")
     return scaler
 
 # ##################################################################
 # Aplicación de un estandarizador
     
-def NormalizeData(dataframe_proccessed, model):
-    print("- - -")
-    print("Starting normalization...")
+def NormalizeDataframe(dataframe_proccessed, model):
+    #print("- - -")
+    #print("Starting normalization...")
     columns = dataframe_proccessed.columns
     # Normalizamos el dataframe de entrada mediante el normalizador recibido como argumento
     data = model.transform(dataframe_proccessed.astype(float))
     data = pd.DataFrame(data, columns=columns)
-    print("Data normalized.")
+    #print("Data normalized.")
+    return data
+
+def NormalizeData(data, model):
+    #print("- - -")
+    #print("Starting normalization...")
+    # Normalizamos el dataframe de entrada mediante el normalizador recibido como argumento
+    data = model.transform(data)
+    #print("Data normalized.")
     return data
 
 # ##################################################################
@@ -64,8 +73,7 @@ def change_target_value_01(df):
         return 1
  
 def change_target_value_MNIST(df):
-    anomaly_label = 0
-    if df == anomaly_label:
+    if df == 1 or df == 7:
         return 1
     else:
         return 0
@@ -198,10 +206,67 @@ def check_one_projection(args):
     
     return aux # Lista de listas de proyecciones
 
+def check_if_points_are_inside_polygons_matplotlib (dataset, model, process_pool):
+    # Función que determina si uno o varios datos pasados como matriz de numpy se encuentran dentro de un modelo NCH entrenado
+    
+    projections, l_vertices, _, l_vertices_expandidos, l_orden_vertices, _ = model
+    if (dataset[0].ndim == 1):
+        num_datos = 1
+    else:
+        num_datos = dataset[0].shape[0]
+
+    arguments_iterable = []
+    for i in range (0, projections[0].shape[1]):
+        if (l_vertices_expandidos != False):
+            parameter = l_vertices_expandidos[i]
+        else:
+            parameter = l_vertices[i][l_orden_vertices[i]]
+
+        arguments_iterable.append((l_vertices_expandidos, l_vertices[i], parameter, num_datos, dataset[i]))
+        
+    result = list(process_pool.imap(check_one_projection_matplotlib, arguments_iterable))
+
+    return result
+
+def check_if_points_are_inside_polygons_matplotlib_sin_paralelizar (dataset, model):
+    # Función que determina si uno o varios datos pasados como matriz de numpy se encuentran dentro de un modelo NCH entrenado
+    aux = []
+    projections, l_vertices, l_aristas, l_vertices_expandidos, l_orden_vertices = model
+    
+    if (dataset[0].ndim == 1):
+        num_datos = 1
+    else:
+        num_datos = dataset[0].shape[0]
+
+    for i in range (0, len(l_vertices)):
+        print("Proy:", i)
+        if (l_vertices_expandidos != False): # Si los cierres SI se expandieron durante el entrenamiento, utilizamos el SNCH para clasificar
+            # Construimos el polígono a partir de los vértices del SNCH
+            polygon = mpltPath.Path(vertices = l_vertices_expandidos[i]) 
+
+        else: # Si los cierres NO se expandieron durante el entrenamiento, utilizamos el NCH para clasificar
+            # Construimos el polígono a partir de los vértices del NCH
+            polygon = mpltPath.Path(vertices = l_vertices[i][l_orden_vertices[i]]) 
+        
+        clasificacion = list(polygon.contains_points(dataset[i]))
+        aux.append(clasificacion)
+    
+    return aux
+
+def check_one_projection_matplotlib(args):   
+    l_vertices_ex, vertices, l_vertices_x, n_datos, dataset = args
+    aux = []
+    # Construimos el polígono a partir de los vértices del NCH
+    
+    polygon = mpltPath.Path(vertices = l_vertices_x) 
+
+    aux = polygon.contains_points(dataset)
+        
+    return aux # Lista de listas de proyecciones
+
 def combinar_clasificaciones(result):
     # Funcion que recibe una lista de listas y combinar los resultados -> si un dato es clasificado en alguna proyección
     # como anómalo, el resultado será anómalo
-    
     n_proyections = len(result)
     n_datos = len(result[0])
     
@@ -217,7 +282,6 @@ def combinar_clasificaciones(result):
             combination[i] = 0
 
     return combination
-
 
 def calcular_metricas (Y_test, result, titulo):
     cm = confusion_matrix(Y_test, result).ravel()

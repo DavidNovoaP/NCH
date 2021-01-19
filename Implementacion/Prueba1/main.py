@@ -6,9 +6,10 @@
 from calcular_NCH_simple import *
 from aux_functions import *
 from Algorithms import *
-from calcular_NCH_simple import *
+#from calcular_NCH_simple import *
 from NCH_parallel import *
 #from NCH import *
+import io
 
 
 # #############################################################################
@@ -36,6 +37,7 @@ from pathos.multiprocessing import ProcessingPool as Pool
 
 
 if __name__ == '__main__':
+    
     # #############################################################################
     # Generar datasets artificiales
     """
@@ -55,12 +57,9 @@ if __name__ == '__main__':
         X = X[:,[0,2]]
     """
     
-    # #############################################################################
-    # Cargar datasets reales 
-    
+
     # #############################################################################
     # Telescope
-    
     
     path = "C:/Users/DAVID/Desktop/TESIS/NCH/Datasets/MagicTelescope11/magic04.txt"
     #path = "C:/Users/usuario/Desktop/LIDIA/TESIS/NCH/Datasets/MagicTelescope11/magic04.txt"
@@ -76,10 +75,10 @@ if __name__ == '__main__':
     # 'h' = hadron (background) = anomaly class
     Y = Y.apply(change_target_value_GH)
     
-    
+    """
     # #############################################################################
     # MinibooNE
-    """
+    
     path = "C:/Users/DAVID/Desktop/TESIS/Proyectos/NCH/Datasets/Miniboone/MiniBooNE_PID.txt" # 
     dataset = []
     with io.open(path, mode="r", encoding="utf-8") as f:
@@ -95,10 +94,11 @@ if __name__ == '__main__':
     dataset = dataset.reset_index(drop = True)
     X = dataset.iloc[:, 0:dataset.shape[1]-1]
     Y = dataset.iloc[:, dataset.shape[1]-1]
-    
+    """
     
     # #############################################################################
     # MNIST
+    """
     from mnist import MNIST
     path_mnist = "C:/Users/DAVID/Desktop/TESIS/Proyectos/NCH/Datasets/MNIST/"
     mndata = MNIST(path_mnist)
@@ -120,19 +120,15 @@ if __name__ == '__main__':
     
     X_train = X_train.drop_duplicates()
     X_train = X_train.reset_index(drop = True)
+    X_train = X_train.sample(frac = 1) 
     
-    model_normalizer = NormalizeData_Train(X_train)
-    X_train = NormalizeData(X_train, model_normalizer)
-    X_test = NormalizeData(X_test, model_normalizer)
+    #model_normalizer = NormalizeData_Train(X_train)
+    #X_train = NormalizeData(X_train, model_normalizer)
+    #X_test = NormalizeData(X_test, model_normalizer)
     
-    X_train = X_train.iloc[0:20000, :]
-    Y_train = Y_train.iloc[0:20000]
+    X = X_train.iloc[0:20000, :]
+    Y = Y_train.iloc[0:20000]
     """
-    # #############################################################################
-    # Normalizar datos
-    
-    model_normalizer = NormalizeData_Train(X)
-    X_normalized = NormalizeData(X, model_normalizer)
     
     # #############################################################################
     # Splitear datos
@@ -141,66 +137,24 @@ if __name__ == '__main__':
     anomaly_data_indexes = Y.index[Y == 1].tolist()
     
     train_normal_data_indexes, test_normal_data_indexes = train_test_split(normal_data_indexes, test_size=0.2, random_state=42)
-    
-    
-    X_train = X_normalized.iloc[train_normal_data_indexes, :]
+
+    X_train = X.iloc[train_normal_data_indexes, :]
     Y_train = Y.iloc[train_normal_data_indexes]
     
-    X_test = X_normalized.iloc[test_normal_data_indexes + anomaly_data_indexes, :]
+    X_test = X.iloc[test_normal_data_indexes + anomaly_data_indexes, :]
     Y_test = Y.iloc[test_normal_data_indexes + anomaly_data_indexes]
 
-    X_train = X_train.iloc[0:10000, :]
-    Y_train = Y_train.iloc[0:10000]
-    
-    # #############################################################################
-    # Entrenar  algoritmo
-    """
-    get_ipython().run_line_magic('matplotlib', 'qt')
-    plt.close('all')
-    
-    
-    l = 0.75        # Hiperparámetro del modelo, distancia mínima de las aristas (más L => menos ajustado)
-    extend = 0.25   # Indica la longitud en que se extiende cada vértice del cierre no convexo
-    n_proy = 100 # Número de proyecciones a emplear
-    threads = 8     # Número de procesadores a emplear en el caso de multiproceso
 
-    # Entrenar   
-    process_pool = mp.Pool(threads)
-    
-    tic = time.perf_counter() 
-    model = NCH_train (X_train.to_numpy(), n_proy, l, extend, False, threads, process_pool)
-    toc = time.perf_counter()
-    print("Tiempo TRAIN con %i procesadores: %0.4f segundos" % (threads, toc - tic)) 
-    print("-------------")
-    
-    
-    tic = time.perf_counter() 
-    result = NCH_classify (X_test.to_numpy(), model, threads, process_pool)
-    toc = time.perf_counter()
-    print("Tiempo TEST con %i procesadores: %0.4f segundos" % (threads, toc - tic)) 
-    
-    # Evaluar resultados 
-    titulo = "-L: "+str(l) + ", Extend: " + str(extend) + ", Proyecciones: " + str(n_proy)
-    calcular_metricas(Y_test, result, titulo)
-    
-    process_pool.close()
-    process_pool.join()
-    
-    """
-    
     # #############################################################################
     # Non Convex Hull
-    
-    
-    
-    NCH_parameters1 = [100] # Proyecciones
-    NCH_parameters2 = [1.75, 1] #, 1.25, 1.5] # l
-    NCH_parameters3 = [0.25] #, 0.5 , 0.75, 1, 1.25, 1.5] # extend
-    NCH_parameters4 = [6] # threads
+
+    NCH_parameters1 = [500, 3000] # Proyecciones
+    NCH_parameters2 = [100] # l
+    NCH_parameters3 = [0, 0.05, 0.5] # extend
+    NCH_parameters4 = [8] # threads
     NCH_results = []
     
-    process_pool = mp.Pool(NCH_parameters4[0])
-    #process_pool = Pool(nodes=2)
+    process_pool = Pool(nodes=NCH_parameters4[0])
     
     for i in NCH_parameters1:
         for j in NCH_parameters2:
@@ -221,6 +175,9 @@ if __name__ == '__main__':
     
     process_pool.close()
     process_pool.join()
+    
+    #process_pool.restart()
+    
     """
     # #############################################################################
     # Robust Covariance
@@ -340,8 +297,6 @@ if __name__ == '__main__':
                 AE_results.append(cm)              
     
     
-    
-    
     # #############################################################################
     # SVDD
     
@@ -367,9 +322,10 @@ if __name__ == '__main__':
                 cm = calcular_metricas(Y_test, SVDD_predict, titulo)
                 cm.append(titulo)
                 SVDD_results.append(cm)  
-           
-    with open("LOF_results_test2.txt", "w") as output:
-        output.write(str(LOF_results))
+                
+    # #############################################################################
+    with open("MINIBOONE1.txt", "w") as output:
+        output.write(str(NCH_results))
     """  
 
     

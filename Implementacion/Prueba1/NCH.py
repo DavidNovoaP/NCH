@@ -4,8 +4,8 @@ Created on Thu Dec  3 10:57:12 2020
 
 @author: DAVID
 """
-from calcular_NCH_simple import *
-#from calcular_NCH_simple_con_graficas import *
+#from calcular_NCH_simple import *
+from calcular_NCH_simple_con_graficas import *
 from aux_functions import *
 import numpy as np
 from shapely.geometry import Point
@@ -29,7 +29,7 @@ def NCH_train (dataset, n_projections, l, extend, contraer_SCH):
     
     print("-------------")
     print("Projection: ", 0) 
-    vertices_aux, aristas_aux, vertices_expandidos, orden_vertices_aux, factor_expansion_aux =  calcular_NCH_simple((dataset_projected[0], l, extend, contraer_SCH))
+    vertices_aux, aristas_aux, vertices_expandidos, orden_vertices_aux, factor_expansion_aux =  calcular_NCH_simple_con_graficas((dataset_projected[0], l, extend, contraer_SCH))
     l_vertices.append(vertices_aux)
     l_aristas.append(aristas_aux)
     l_vertices_expandidos.append(vertices_expandidos)
@@ -76,7 +76,7 @@ def NCH_classify (dataset, model):
     
     print("check dentro/fuera")
     tic = time.perf_counter() 
-    result = check_if_points_are_inside_polygons(dataset_projected, model)
+    result = check_if_points_are_inside_polygons_matplotlib_sin_paralelizar(dataset_projected, model)
     toc = time.perf_counter() 
     print("tiempo: ", toc-tic)
     
