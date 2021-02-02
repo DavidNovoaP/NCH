@@ -17,20 +17,20 @@ from aux_functions import *
 def calcular_NCH_simple (args):
     X, l, extend, contraer_SCH = args
     # Delaunay tesselation of X
-    print("comenzando triangularizacion")
+    #print("comenzando triangularizacion")
     tic = time.perf_counter()
     tri = Delaunay(X)
     toc = time.perf_counter()
-    print("tiempo triangularizacion: ", toc-tic)
+    #print("tiempo triangularizacion: ", toc-tic)
     triangles = tri.simplices.copy()
     
     # Calcula el cierre convexo: aristas de borde del polígono
     #CH = tri.convex_hull # Antes usaba esto opción para el CH pero en la ayuda dice que no es recomendable por temas de inestabilidad
-    print("comenzando calculo CH")
+    #print("comenzando calculo CH")
     tic = time.perf_counter()
     CH   = ConvexHull(X)
     toc = time.perf_counter()
-    print("tiempo CH: ", toc-tic)
+    #print("tiempo CH: ", toc-tic)
     triangles = tri.simplices.copy()
     CH_e = CH.simplices  # Aristas de borde del polígono
     
@@ -50,12 +50,12 @@ def calcular_NCH_simple (args):
             j = j + 1
     
     # Se ordenan de menor a mayor las aristas del cierre convexo en función de su longitud
-    print("comenzando ordenacion aristas")
+    #print("comenzando ordenacion aristas")
     tic = time.perf_counter()
     index_sorted = np.argsort(dist)#[::-1]
     dist_sorted = np.sort(dist)#[::-1]
     toc = time.perf_counter()
-    print("tiempo ordenacion aristas: ", toc-tic)
+    #print("tiempo ordenacion aristas: ", toc-tic)
     triangles = tri.simplices.copy()
     
     # Se crea una lista con las aristas de borde ordenadas por distancia (de menor a mayor)
@@ -83,7 +83,7 @@ def calcular_NCH_simple (args):
     # Se crea un array vacío para contener las aristas del cierre no convexo final
     boundary_final = np.empty(shape=[0, 2],dtype=np.int32)
     
-    print("Comienzo poda aristas borde...")
+    #print("Comienzo poda aristas borde...")
     tic = time.perf_counter()
     while len(boundary_e)>0:
         edge = boundary_e[-1,:] # Se obtiene la arista de borde de mayor longitud
@@ -104,6 +104,10 @@ def calcular_NCH_simple (args):
         # Si la distancia de la arista es mayor que el umbral establecido y el tercer vértice no es de borde (para mantener regularidad)
         if (dist_e > l and not(vertex in boundary_v)):
             triangles = np.delete(triangles, triangle_ix, axis=0)  # Elimina el triángulo del polígono
+            #print("triangle_ix", triangle_ix)
+            #print("triangle_e", triangle_e)
+            #print("vertex", vertex)
+            #print("edge", edge)
             new_b_edge1 = [vertex[0], edge[0]] # Se obtiene la arista 1 del triángulo
             new_b_edge2 = [vertex[0], edge[1]] # Se obtiene la arista 2 del triángulo
             dist_edge1 = np.linalg.norm(X[new_b_edge1[0]]-X[new_b_edge1[1]]) # Calcula la longitud de arista 1
@@ -131,7 +135,7 @@ def calcular_NCH_simple (args):
             boundary_final = np.append(boundary_final,np.reshape(edge, (-1, 2)),axis=0)
     
     toc = time.perf_counter()
-    print("tiempo poda aristas borde: ", toc-tic)
+    #print("tiempo poda aristas borde: ", toc-tic)
     
     # Muestra la triangulazión final
     #1 plt.figure()
@@ -144,7 +148,7 @@ def calcular_NCH_simple (args):
     # Muestra el borde del cierre no convexo final
     #1 plt.plot([X[boundary_final[:,0],0],X[boundary_final[:,1],0]],[X[boundary_final[:,0],1],X[boundary_final[:,1],1]],'r-')
     
-    print("comenzando parte final")
+    #print("comenzando parte final")
     tic = time.perf_counter()
     
     if (contraer_SCH == True):
@@ -178,7 +182,17 @@ def calcular_NCH_simple (args):
                     a = np.linalg.norm(X[vertices[0]]-X[i])     # Calcula la longitud del primer lado del triángulo
                     b = np.linalg.norm(X[vertices[1]]-X[i])     # Calcula la longitud del segundo lado del triángulo
                     c = np.linalg.norm(X[vertices[0]]-X[vertices[1]]) # Calcula la longitud del tercer lado del triángulo
-                    angle = np.degrees ( math.acos( ( a**2 + b**2 - c**2 ) / (2*a*b) ) ) # Cácula el ángulo para el vértice dado
+                    #print("a :", a)
+                    #print("b :", b)
+                    #print("c :", c)
+                    aux_ang = ( a**2 + b**2 - c**2 ) / (2*a*b)
+                    if aux_ang > 1:
+                        aux_ang = 1
+                    elif aux_ang < -1:
+                        aux_ang = -1
+                        
+                    #print("aux_ang: ", aux_ang)
+                    angle = np.degrees ( math.acos( aux_ang ) ) # Cácula el ángulo para el vértice dado
                     sum_angle = sum_angle + angle
                     
                 # Cálculos previos para determinar el vértice extendido a partir del vértice externo
@@ -201,6 +215,11 @@ def calcular_NCH_simple (args):
                     sign_ang = np.append(sign_ang,1) # Si el ángulo es convexo se sumará sobre el vértice externo
                     
                 # Calcula el vértice extendido en función de si es cóncavo o convexo (valor de sign_ang)
+                #print("X[i]: ", X[i])
+                #print("sign_ang[z]: ", sign_ang[z])
+                #print("incenter: ", incenter)
+                #print("lenAB: ", lenAB)
+                #print("e: ", e)
                 extVertex = X[i] + sign_ang[z] * (X[i] - incenter) / lenAB * e # Basado en: https://stackoverflow.com/questions/7740507/extend-a-line-segment-a-specific-distance
                 z = z + 1
                 extVertex_l = np.append(extVertex_l, np.reshape(extVertex, (-1, 2)),axis=0) 
@@ -214,20 +233,20 @@ def calcular_NCH_simple (args):
             
             # Comprobar si el SNCH es simple o complejo
             # 2 print("Complejo: ",edges_intersect(array_to_sequence_of_vertices(extVertex_l)))
-            print("comenzando comprobacion poligono simple/complejo")
+            #print("comenzando comprobacion poligono simple/complejo")
             tic1 = time.perf_counter()
             if (edges_intersect(array_to_sequence_of_vertices(extVertex_l)) == False):
                 extend = e
                 break
             toc1 = time.perf_counter()
-            print("tiempo poda aristas borde: ", toc1-tic1)
+            #print("tiempo poda aristas borde: ", toc1-tic1)
         elif (e == 0):
             extend = 0
             extVertex_l = X
     
     
     toc = time.perf_counter()
-    print("tiempo parte final: ", toc-tic)
+    #print("tiempo parte final: ", toc-tic)
 
     #    plt.plot(incenter_l[z,0],incenter_l[z,1],'yo', markersize=12)
     #    plt.plot(X[v,0],X[v,1],'yo')    

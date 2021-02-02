@@ -25,7 +25,12 @@ def NCH_train (dataset, n_projections, l, extend, contraer_SCH):
     l_vertices_expandidos = []
     l_orden_vertices = []
     l_factor_expansion = []
+    l_normalizadores = []
     
+    for i in range (0, n_projections):
+        model_normalizer = NormalizeData_Train(dataset_projected[i])
+        dataset_projected[i] = NormalizeData(dataset_projected[i], model_normalizer)
+        l_normalizadores.append(model_normalizer)
     
     print("-------------")
     print("Projection: ", 0) 
@@ -60,11 +65,11 @@ def NCH_train (dataset, n_projections, l, extend, contraer_SCH):
         l_vertices_expandidos = False
         print("Se han seleccionado varias proyecciones pero NO emplearán sus cierres expandidos ya que son complejos.")    
     print("-------------")  
-    return projections, l_vertices, l_aristas, l_vertices_expandidos, l_orden_vertices
+    return projections, l_vertices, l_aristas, l_vertices_expandidos, l_orden_vertices, l_normalizadores
 
 
 def NCH_classify (dataset, model):        
-    projections, l_vertices, l_aristas, l_vertices_expandidos, l_orden_vertices = model
+    projections, l_vertices, l_aristas, l_vertices_expandidos, l_orden_vertices, l_normalizadores = model
     
     # Proyectamos los datos a clasificar
     print("proyectar datos")
@@ -73,6 +78,9 @@ def NCH_classify (dataset, model):
     dataset_projected = project_Dataset(dataset, projections)
     toc = time.perf_counter() 
     print("tiempo: ", toc-tic)
+    
+    for i in range (0, len(l_normalizadores)):
+        dataset_projected[i] = NormalizeData(dataset_projected[i], l_normalizadores[i])
     
     print("check dentro/fuera")
     tic = time.perf_counter() 

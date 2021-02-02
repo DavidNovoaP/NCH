@@ -104,7 +104,6 @@ def AE_classify (data, model_threshold):
     dataH2O = h2o.H2OFrame(data)
     error = model.anomaly(dataH2O).as_data_frame(use_pandas  = True).to_numpy()
     y_pred = np.where(error < threshold, 0, 1)
-    #indice_anomalias = np.where(distancias_flatten < margenExtremadamenteAtipico, 0, 1)
     print("Classified.")
     return  pd.Series(y_pred.flatten())
 

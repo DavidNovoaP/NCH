@@ -30,11 +30,12 @@ def NCH_train (dataset, n_projections, l, extend, contraer_SCH, process_pool):
     l_normalizadores = []
     
     arguments_iterable = []
+    
     for i in range (0, n_projections):
         model_normalizer = NormalizeData_Train(dataset_projected[i])
         dataset_projected[i] = NormalizeData(dataset_projected[i], model_normalizer)
         arguments_iterable.append((dataset_projected[i], l, extend, contraer_SCH))
-        l_normalizadores.append(model_normalizer)
+        l_normalizadores.append(model_normalizer)    
     
     tic = time.perf_counter()    
     #process_pool = mp.Pool(threads)
@@ -75,7 +76,6 @@ def NCH_classify (dataset, model, process_pool):
     
     for i in range (0, len(l_normalizadores)):
         dataset_projected[i] = NormalizeData(dataset_projected[i], l_normalizadores[i])
-    
     result = check_if_points_are_inside_polygons_matplotlib(dataset_projected, model, process_pool)
     
     result = combinar_clasificaciones(result) 

@@ -231,7 +231,7 @@ def check_if_points_are_inside_polygons_matplotlib (dataset, model, process_pool
 def check_if_points_are_inside_polygons_matplotlib_sin_paralelizar (dataset, model):
     # Función que determina si uno o varios datos pasados como matriz de numpy se encuentran dentro de un modelo NCH entrenado
     aux = []
-    projections, l_vertices, l_aristas, l_vertices_expandidos, l_orden_vertices = model
+    projections, l_vertices, l_aristas, l_vertices_expandidos, l_orden_vertices, _ = model
     
     if (dataset[0].ndim == 1):
         num_datos = 1
@@ -310,28 +310,38 @@ def cargar_resultados_txt (path):
         lines.append(reader.readline())
     return ast.literal_eval(lines[0])
 
+def weird_division(n, d):
+    return n / d if d else 0
+
+
 def parsear_y_calcular_metricas (list_results):
     desired_output = []
     for result in list_results:
         TN, FP, FN, TP, info = result 
         sensibilidad = TP/(TP+FN)
         especificidad = TN/(TN+FP)
-        precision = (TP+TN)/(TP+TN+FP+FN)
+        accuracy = (TP+TN)/(TP+TN+FP+FN)
         similitud = 1-(math.sqrt((1-(TP+TN)/(TP+TN+FP+FN))**2+(1-TP/(TP+FN))**2)/math.sqrt(2))
-    
-        desired_output.append([sensibilidad, especificidad, precision, similitud, info])
+        precision = weird_division(TP, TP+FP)
+        F1 = weird_division((2*precision*sensibilidad), (precision+sensibilidad))
+        
+        desired_output.append([sensibilidad, especificidad, accuracy, similitud, F1, info])
     return desired_output
 
 def obtener_mejor_metodo (list_results, index_metric):
-    list_results_target_metric = []
-    for result in list_results:
-        list_results_target_metric.append(result[index_metric])
+    
+    if index_metric != -1:
+        list_results_target_metric = []
+        for result in list_results:
+            list_results_target_metric.append(result[index_metric])
         
+    else:
+        list_results_target_metric = []
+        for result in list_results:
+            list_results_target_metric.append((result[0] + result[1])/2)
+
     max_value = max(list_results_target_metric)
     max_index = list_results_target_metric.index(max_value)
     return list_results[max_index]
-
-
-
 
 

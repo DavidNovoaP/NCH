@@ -20,6 +20,8 @@ from aux_functions import *
 def calcular_NCH_simple_con_graficas (args):
     X, l, extend, contraer_SCH = args
     
+    
+    
     # Delaunay tesselation of X
     print("comenzando triangularizacion")
     tic = time.perf_counter()
@@ -68,7 +70,7 @@ def calcular_NCH_simple_con_graficas (args):
     # Se cread una lista con los vértices de borde
     #boundary_v = np.unique(CH_e) # ---> ¿¿¿Se podría cambiar por  ConvexHull(X).vertices?????. Creo que sí
     boundary_v = CH.vertices
-    """
+    
     plt.figure()
     plt.plot(X[:,0], X[:,1], 'go')
     plt.axis('equal')
@@ -83,7 +85,7 @@ def calcular_NCH_simple_con_graficas (args):
     plt.plot(X[boundary_v,0], X[boundary_v,1], 'ro', markersize=10)
     plt.axis('equal')
     plt.title('Delaunay triangulation')
-    """
+    
     # Se crea un array vacío para contener las aristas del cierre no convexo final
     boundary_final = np.empty(shape=[0, 2],dtype=np.int32)
     print("Comienzo poda aristas borde...")
@@ -137,7 +139,7 @@ def calcular_NCH_simple_con_graficas (args):
     toc = time.perf_counter()
     print("tiempo poda aristas borde: ", toc-tic)
     
-    """
+    
     # Muestra la triangulazión final
     plt.figure()
     plt.triplot(X[:,0], X[:,1], triangles)
@@ -148,7 +150,7 @@ def calcular_NCH_simple_con_graficas (args):
     
     # Muestra el borde del cierre no convexo final
     plt.plot([X[boundary_final[:,0],0],X[boundary_final[:,1],0]],[X[boundary_final[:,0],1],X[boundary_final[:,1],1]],'r-')
-    """
+    
     
     if (contraer_SCH == True):
         extend_list = np.arange(extend, 0, -extend/5)
@@ -180,7 +182,14 @@ def calcular_NCH_simple_con_graficas (args):
                     a = np.linalg.norm(X[vertices[0]]-X[i])     # Calcula la longitud del primer lado del triángulo
                     b = np.linalg.norm(X[vertices[1]]-X[i])     # Calcula la longitud del segundo lado del triángulo
                     c = np.linalg.norm(X[vertices[0]]-X[vertices[1]]) # Calcula la longitud del tercer lado del triángulo
-                    angle = np.degrees ( math.acos( ( a**2 + b**2 - c**2 ) / (2*a*b) ) ) # Cácula el ángulo para el vértice dado
+                    aux_ang = ( a**2 + b**2 - c**2 ) / (2*a*b)
+                    if aux_ang > 1:
+                        aux_ang = 1
+                    elif aux_ang < -1:
+                        aux_ang = -1
+                        
+                    #print("aux_ang: ", aux_ang)
+                    angle = np.degrees ( math.acos( aux_ang ) ) # Cácula el ángulo para el vértice dado
                     sum_angle = sum_angle + angle
                     
                 # Cálculos previos para determinar el vértice extendido a partir del vértice externo
@@ -243,6 +252,7 @@ def calcular_NCH_simple_con_graficas (args):
         z = np.where(np.isin(boundary_v, v[0]))
         z=z[0][0]
         lenAB = np.linalg.norm(X[v[0]]-incenter_l[z]) 
+        #print("lenAB * extend: ", lenAB * extend  )
         extVertex1 = X[v[0]] + sign_ang[z] * (X[v[0]] - incenter_l[z]) / lenAB * extend 
         z = np.where(np.isin(boundary_v, v[1]))
         z=z[0][0]
